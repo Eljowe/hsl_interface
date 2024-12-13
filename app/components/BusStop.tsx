@@ -14,12 +14,13 @@ interface StopTime {
     pattern: {
       route: {
         shortName: string;
+        type: number;
       };
     };
   };
 }
 
-interface stopInfo {
+interface StopInfo {
   name: string;
   code: string;
   desc: string;
@@ -34,10 +35,10 @@ interface BusStopProps {
 
 const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
   const [stopTimes, setStopTimes] = useState<StopTime[]>([]);
-  const [stopInfo, setstopInfo] = useState<stopInfo | null>(null);
+  const [stopInfo, setStopInfo] = useState<StopInfo | null>(null);
   const [error, setError] = useState<boolean>(false);
 
-  useEffect(() => {
+  const fetchData = async () => {
     fetch("/api/aikataulu", {
       method: "POST",
       headers: {
@@ -64,13 +65,19 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        setstopInfo(data.data.stop);
+        setStopInfo(data.data.stop);
         setError(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
         setError(true);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000); // 10000 milliseconds = 10 seconds
+    return () => clearInterval(interval); // Cleanup the interval on component unmount
   }, [stopId]);
 
   const formatTime = (seconds: number) => {
@@ -79,58 +86,54 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
   };
 
-  if (error) {
-    return <div>Virhe ladattaessa pysäkin tietoja.</div>;
-  }
-
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full min-w-[350px] p-2">
       {stopInfo && (
-        <div className="flex flex-col items-center sm:items-start mb-4">
+        <div className="flex flex-col items-start mb-4">
           <h1 className="text-3xl font-semibold">{stopInfo.name}</h1>
-          <p className="text-lg">{stopInfo.desc}</p>
-          <p className="text-md border px-1 text-gray-500">{stopInfo.code}</p>
+          <p className="text-sm">{stopInfo.desc}</p>
+          <p className="text-sm border px-1 text-gray-500">{stopInfo.code}</p>
         </div>
       )}
       {stopTimes.length > 0 && (
-        <div>
+        <div className="divide-y-2">
           {stopTimes.map((stopTime, index) => (
-            <div
-              key={index}
-              className="flex flex-row items-center justify-between p-4 mb-4 border rounded-lg shadow-md bg-white"
-            >
-              <div>
-                <div className="text-xl font-semibold flex items-center">
-                  <div className="w-20">
-                    <h2 className="bg-blue-600 w-16 text-center px-2 py-1 text-white rounded-md">
-                      {stopTime.trip.pattern.route.shortName}
-                    </h2>{" "}
-                  </div>
-                  {stopTime.headsign}
+            <div key={index} className="flex py-2 flex-row items-start justify-between bg-white">
+              <div className="text-sm font-semibold flex items-center">
+                <div className="w-14">
+                  <h2
+                    className={`text-center px-2 py-1 text-white rounded-md ${
+                      stopTime.trip.pattern.route.type === 702 ? "bg-orange-700" : "bg-blue-600"
+                    }`}
+                  >
+                    {stopTime.trip.pattern.route.shortName}
+                  </h2>
                 </div>
+                <span className="ml-2">{stopTime.headsign}</span>
               </div>
-              <p className={stopTime.realtimeState === "UPDATED" ? "text-green-600" : "text-black"}>
-                {formatTime(stopTime.realtimeArrival)}
-                <span className="ml-2">
-                  {Math.max(
-                    0,
-                    Math.floor(
-                      (stopTime.realtimeArrival -
-                        (new Date().getHours() * 3600 + new Date().getMinutes() * 60 + new Date().getSeconds())) /
-                        60
-                    )
-                  ) === 0
-                    ? "nyt"
-                    : `${Math.max(
-                        0,
-                        Math.floor(
-                          (stopTime.realtimeArrival -
-                            (new Date().getHours() * 3600 + new Date().getMinutes() * 60 + new Date().getSeconds())) /
-                            60
-                        )
-                      )} min`}
-                </span>
-              </p>
+              <div
+                className={`flex flex-row gap-2 ${
+                  stopTime.realtimeState === "UPDATED" ? "text-green-600" : "text-black"
+                }`}
+              >
+                <div className="w-max flex">
+                  {(() => {
+                    const currentTimeInSeconds =
+                      new Date().getHours() * 3600 + new Date().getMinutes() * 60 + new Date().getSeconds();
+                    const arrivalTimeInSeconds = stopTime.realtimeArrival;
+                    const timeDifferenceInSeconds = arrivalTimeInSeconds - currentTimeInSeconds;
+
+                    if (timeDifferenceInSeconds < 30) {
+                      return "nyt";
+                    } else if (timeDifferenceInSeconds < 60) {
+                      return "1 min";
+                    } else {
+                      return `${Math.floor(timeDifferenceInSeconds / 60)} min`;
+                    }
+                  })()}
+                </div>
+                <div className="w-[46px]">{formatTime(stopTime.realtimeArrival)}</div>
+              </div>
             </div>
           ))}
         </div>
