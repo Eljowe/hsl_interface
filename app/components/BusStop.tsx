@@ -56,7 +56,7 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
         setError(true);
       });
 
-    fetch("/api/aikataulu/pysakki", {
+    fetch("/api/pysakki", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,6 +85,15 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
   };
+
+  if (error) {
+    return (
+      <div className="w-full min-w-[350px] p-2">
+        <h1 className="text-3xl font-semibold">Virhe</h1>
+        <p className="text-sm">Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-w-[350px] p-2">
