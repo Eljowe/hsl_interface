@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useBusStopStore from "../store";
 import { CircleX } from "lucide-react";
 
@@ -46,47 +46,45 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     deleteStop(id);
   };
 
-  const fetchData = async () => {
-    fetch("/api/aikataulu", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ stopId }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setStopTimes(data.data.stop.stoptimes);
-        setError(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setError(true);
+  const fetchData = useCallback(async () => {
+    try {
+      const responseAikataulu = await fetch("/api/aikataulu", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stopId }),
       });
+      const dataAikataulu = await responseAikataulu.json();
+      setStopTimes(dataAikataulu.data.stop.stoptimes);
+      setError(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(true);
+    }
 
-    fetch("/api/pysakki", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ stopId }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setStopInfo(data.data.stop);
-        setError(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setError(true);
+    try {
+      const responsePysakki = await fetch("/api/pysakki", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stopId }),
       });
-  };
+      const dataPysakki = await responsePysakki.json();
+      setStopInfo(dataPysakki.data.stop);
+      setError(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(true);
+    }
+  }, [stopId]);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 10000); // 10000 milliseconds = 10 seconds
     return () => clearInterval(interval); // Cleanup the interval on component unmount
-  }, [stopId]);
+  }, [fetchData]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -125,7 +123,11 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
                 <div className="w-14">
                   <h2
                     className={`text-center px-2 py-1 text-white rounded-md ${
-                      stopTime.trip.pattern.route.type === 702 ? "bg-orange-700" : "bg-blue-600"
+                      stopTime.trip.pattern.route.type === 702 || stopTime.trip.pattern.route.type === 1
+                        ? "bg-orange-700"
+                        : stopTime.trip.pattern.route.type === 0
+                        ? "bg-green-700"
+                        : "bg-blue-600"
                     }`}
                   >
                     {stopTime.trip.pattern.route.shortName}

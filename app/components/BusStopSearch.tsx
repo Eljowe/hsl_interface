@@ -1,10 +1,33 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, TramFront, BusFront, SquareMIcon } from "lucide-react"; // Import icons
 import useBusStopStore from "../store";
 
-const BusStopSearch: React.FC = () => {
-  const [searchWord, setSearchWord] = useState("");
-  const [response, setResponse] = useState<any>(null);
+interface Feature {
+  type: string;
+  properties: {
+    id: string;
+    name: string;
+    addendum: {
+      GTFS: {
+        code: string;
+        modes: string[];
+      };
+    };
+    label: string;
+  };
+  geometry: {
+    type: string;
+    coordinates: number[];
+  };
+}
+
+interface ResponseData {
+  features: Feature[];
+}
+
+const BusStopSearch = () => {
+  const [searchWord, setSearchWord] = useState<string>("");
+  const [response, setResponse] = useState<ResponseData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stopIds = useBusStopStore((state) => state.stopIds);
 
@@ -16,7 +39,7 @@ const BusStopSearch: React.FC = () => {
     setResponse(null);
   };
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (searchWord.trim() === "") {
       setResponse(null);
       return;
@@ -29,18 +52,17 @@ const BusStopSearch: React.FC = () => {
         },
         body: JSON.stringify({ searchWord }),
       });
-      const data = await res.json();
+      const data: ResponseData = await res.json();
 
-      const filteredIDs = data.features.filter((feature: any) => {
+      const filteredIDs = data.features.filter((feature: Feature) => {
         const transformedId = feature.properties.id.replace(/^GTFS:(HSL:\d+).*$/, "$1");
         return !stopIds.includes(transformedId);
       });
-
       setResponse({ ...data, features: filteredIDs });
     } catch (error) {
       console.error("Error:", error);
     }
-  };
+  }, [searchWord, stopIds]);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -61,7 +83,7 @@ const BusStopSearch: React.FC = () => {
     }, 300);
 
     return () => clearTimeout(debounceTimeout);
-  }, [searchWord]);
+  }, [searchWord, handleSearch]);
 
   const renderIcon = (mode: string) => {
     switch (mode) {
@@ -109,7 +131,7 @@ const BusStopSearch: React.FC = () => {
           style={{ width: "95%", maxWidth: "800px", margin: "0 auto", top: "100%" }}
         >
           <div className="max-w-2xl mx-auto">
-            {response.features.map((feature: any) => (
+            {response.features.map((feature: Feature) => (
               <div
                 key={feature.properties.id}
                 className="p-2 hover:bg-gray-100 flex items-center cursor-pointer"

@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
 
 interface BusStopStore {
@@ -8,9 +8,9 @@ interface BusStopStore {
 }
 
 type MyPersist = (
-  config: (set: any, get: any, api: any) => BusStopStore,
+  config: StateCreator<BusStopStore>,
   options: PersistOptions<BusStopStore>
-) => (set: any, get: any, api: any) => BusStopStore;
+) => StateCreator<BusStopStore>;
 
 const useBusStopStore = create<BusStopStore>(
   (persist as MyPersist)(

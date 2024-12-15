@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (data?.data?.stop?.stoptimes) {
-      data.data.stop.stoptimes = data.data.stop.stoptimes.slice(0, 10);
+      data.data.stop.stoptimes = data.data.stop.stoptimes.slice(0, 5);
     }
 
     return new Response(JSON.stringify(data), { status: 200 });
