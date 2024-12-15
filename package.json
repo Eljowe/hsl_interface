@@ -12,10 +12,12 @@
     "@tanstack/query-sync-storage-persister": "^5.62.7",
     "@tanstack/react-query": "^5.62.7",
     "@tanstack/react-query-persist-client": "^5.62.7",
+    "kioskboard": "^2.3.0",
     "lucide-react": "^0.468.0",
     "next": "15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-simple-keyboard": "^3.8.28",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

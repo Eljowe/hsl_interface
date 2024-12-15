@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, TramFront, BusFront, SquareMIcon } from "lucide-react"; // Import icons
 import useBusStopStore from "../store";
+import KioskBoard from "kioskboard";
 
 interface Feature {
   type: string;
@@ -30,6 +31,7 @@ const BusStopSearch = () => {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stopIds = useBusStopStore((state) => state.stopIds);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const addStop = useBusStopStore((state) => state.addStop);
 
@@ -37,9 +39,83 @@ const BusStopSearch = () => {
     const transformedId = id.replace(/^GTFS:(HSL:\d+).*$/, "$1");
     addStop(transformedId);
     setResponse(null);
+    setSearchWord("");
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   };
 
+  useEffect(() => {
+    KioskBoard.run(".search", {
+      keysArrayOfObjects: [
+        {
+          "0": "Q",
+          "1": "W",
+          "2": "E",
+          "3": "R",
+          "4": "T",
+          "5": "Y",
+          "6": "U",
+          "7": "I",
+          "8": "O",
+          "9": "P",
+        },
+        {
+          "0": "A",
+          "1": "S",
+          "2": "D",
+          "3": "F",
+          "4": "G",
+          "5": "H",
+          "6": "J",
+          "7": "K",
+          "8": "L",
+        },
+        {
+          "0": "Z",
+          "1": "X",
+          "2": "C",
+          "3": "V",
+          "4": "B",
+          "5": "N",
+          "6": "M",
+        },
+      ],
+      keysJsonUrl: "",
+      language: "fi",
+      capsLockActive: false,
+      theme: "light",
+      autoScroll: true,
+      cssAnimations: true,
+      cssAnimationsDuration: 360,
+      cssAnimationsStyle: "slide",
+      keysAllowSpacebar: true,
+      keysSpacebarText: "Space",
+      keysFontFamily: "sans-serif",
+      keysFontSize: "10px",
+      keysFontWeight: "normal",
+      keysIconSize: "10px",
+      keysEnterCallback: () => {
+        if (inputRef.current) {
+          const inputValue = inputRef.current.value;
+          console.log(inputValue);
+          setSearchWord(inputValue);
+          inputRef.current.value = ""; // Clear the input element
+        }
+      },
+      keysEnterText: "Enter",
+      keysEnterCanClose: true,
+      allowRealKeyboard: true,
+      allowMobileKeyboard: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log(searchWord);
+  }, [searchWord]);
+
   const handleSearch = useCallback(async () => {
+    console.log("Searching for:", searchWord);
     if (searchWord.trim() === "") {
       setResponse(null);
       return;
@@ -119,8 +195,9 @@ const BusStopSearch = () => {
           value={searchWord}
           placeholder="Pysäkki tai asema"
           onChange={(e) => setSearchWord(e.target.value)}
-          className="flex-grow ml-2 p-2 border-none outline-none"
+          className="search flex-grow ml-2 p-2 border-none outline-none"
           style={{ minWidth: "0" }}
+          ref={inputRef}
         />
       </div>
 

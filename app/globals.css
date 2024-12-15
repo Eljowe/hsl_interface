@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#KioskBoard-VirtualKeyboard {
+  padding: 2px 2px !important;
+}
+
+#KioskBoard-VirtualKeyboard * {
+  margin: 3px !important;
+}
+
+.kioskboard-row-top > span[class^="kioskboard-key"] {
+  display: none !important; /* Completely remove the keys from the layout */
+}
+
+.kioskboard-row-top {
+  display: none !important; /* Completely remove the row from the layout */
+}

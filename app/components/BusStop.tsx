@@ -56,8 +56,12 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
         body: JSON.stringify({ stopId }),
       });
       const dataAikataulu = await responseAikataulu.json();
-      setStopTimes(dataAikataulu.data.stop.stoptimes);
-      setError(false);
+      if (dataAikataulu.data && dataAikataulu.data.stop) {
+        setStopTimes(dataAikataulu.data.stop.stoptimes);
+        setError(false);
+      } else {
+        throw new Error("Invalid data structure for aikataulu");
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       setError(true);
@@ -72,8 +76,13 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
         body: JSON.stringify({ stopId }),
       });
       const dataPysakki = await responsePysakki.json();
-      setStopInfo(dataPysakki.data.stop);
-      setError(false);
+      if (dataPysakki.data && dataPysakki.data.stop) {
+        setStopInfo(dataPysakki.data.stop);
+        setError(false);
+      } else {
+        setError(true);
+        throw new Error("Invalid data structure for pysakki");
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       setError(true);
@@ -94,9 +103,12 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
 
   if (error) {
     return (
-      <div className="w-[380px]  p-2">
+      <div className="w-[380px] p-2">
         <h1 className="text-3xl font-semibold">Virhe</h1>
         <p className="text-sm">Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.</p>
+        <button className="mt-2 px-4 py-2 bg-red-500 text-white rounded" onClick={() => handleDelete(stopId)}>
+          Poista asema
+        </button>
       </div>
     );
   }

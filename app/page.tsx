@@ -14,7 +14,7 @@ export default function Home() {
           <BusStopSearch />
           <Clock />
         </div>
-        <div className="flex items-start gap-6 flex-wrap">
+        <div className="flex items-start justify-start gap-6 flex-wrap">
           {stopIds.map((stopId) => (
             <BusStop key={stopId} stopId={stopId} />
           ))}
