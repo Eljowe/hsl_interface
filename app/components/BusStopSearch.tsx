@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, TramFront, BusFront, SquareMIcon } from "lucide-react"; // Import icons
+import useBusStopStore from "../store";
 
 const BusStopSearch: React.FC = () => {
   const [searchWord, setSearchWord] = useState("");
   const [response, setResponse] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const stopIds = useBusStopStore((state) => state.stopIds);
+
+  const addStop = useBusStopStore((state) => state.addStop);
+
+  const handleResultClick = (id: string) => {
+    const transformedId = id.replace(/^GTFS:(HSL:\d+).*$/, "$1");
+    addStop(transformedId);
+    setResponse(null);
+  };
 
   const handleSearch = async () => {
     if (searchWord.trim() === "") {
@@ -20,8 +30,13 @@ const BusStopSearch: React.FC = () => {
         body: JSON.stringify({ searchWord }),
       });
       const data = await res.json();
-      console.log(data);
-      setResponse(data);
+
+      const filteredIDs = data.features.filter((feature: any) => {
+        const transformedId = feature.properties.id.replace(/^GTFS:(HSL:\d+).*$/, "$1");
+        return !stopIds.includes(transformedId);
+      });
+
+      setResponse({ ...data, features: filteredIDs });
     } catch (error) {
       console.error("Error:", error);
     }
@@ -74,8 +89,8 @@ const BusStopSearch: React.FC = () => {
   };
 
   return (
-    <div className="relative">
-      <div className="flex flex-row items-center p-2 border border-gray-300 rounded w-full mb-4">
+    <div className="relative w-full">
+      <div className="flex flex-row items-center p-2 border border-gray-300 rounded mb-4" style={{ maxWidth: "300px" }}>
         <Search size={24} />
         <input
           type="text"
@@ -83,6 +98,7 @@ const BusStopSearch: React.FC = () => {
           placeholder="Pysäkki tai asema"
           onChange={(e) => setSearchWord(e.target.value)}
           className="flex-grow ml-2 p-2 border-none outline-none"
+          style={{ minWidth: "0" }}
         />
       </div>
 
@@ -90,11 +106,15 @@ const BusStopSearch: React.FC = () => {
         <div
           ref={dropdownRef}
           className="absolute left-0 right-0 bg-white border border-gray-300 rounded-lg p-4 max-h-80 overflow-y-auto z-50 mt-2"
-          style={{ width: "90%", maxWidth: "600px", margin: "0 auto", top: "100%" }}
+          style={{ width: "95%", maxWidth: "800px", margin: "0 auto", top: "100%" }}
         >
           <div className="max-w-2xl mx-auto">
             {response.features.map((feature: any) => (
-              <div key={feature.properties.id} className="p-2 hover:bg-gray-100 flex items-center">
+              <div
+                key={feature.properties.id}
+                className="p-2 hover:bg-gray-100 flex items-center cursor-pointer"
+                onClick={() => handleResultClick(feature.properties.id)}
+              >
                 {renderIcon(feature.properties.addendum.GTFS.modes[0])}
                 <div>
                   <h3 className="font-bold">{feature.properties.name}</h3>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import useBusStopStore from "../store";
+import { CircleX } from "lucide-react";
 
 interface StopTime {
   headsign: string;
@@ -37,6 +39,12 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
   const [stopTimes, setStopTimes] = useState<StopTime[]>([]);
   const [stopInfo, setStopInfo] = useState<StopInfo | null>(null);
   const [error, setError] = useState<boolean>(false);
+
+  const deleteStop = useBusStopStore((state) => state.deleteStop);
+
+  const handleDelete = (id: string) => {
+    deleteStop(id);
+  };
 
   const fetchData = async () => {
     fetch("/api/aikataulu", {
@@ -88,7 +96,7 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
 
   if (error) {
     return (
-      <div className="w-full min-w-[350px] p-2">
+      <div className="w-[380px]  p-2">
         <h1 className="text-3xl font-semibold">Virhe</h1>
         <p className="text-sm">Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.</p>
       </div>
@@ -96,10 +104,15 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
   }
 
   return (
-    <div className="w-full min-w-[350px] p-2">
+    <div className="w-[380px]">
       {stopInfo && (
         <div className="flex flex-col items-start mb-4">
-          <h1 className="text-3xl font-semibold">{stopInfo.name}</h1>
+          <div className="flex gap-2">
+            <h1 className="text-3xl font-semibold">{stopInfo.name}</h1>
+            <button onClick={() => handleDelete(stopId)} className="text-neutral-500">
+              <CircleX />
+            </button>
+          </div>
           <p className="text-sm">{stopInfo.desc}</p>
           <p className="text-sm border px-1 text-gray-500">{stopInfo.code}</p>
         </div>
