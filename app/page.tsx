@@ -2,7 +2,7 @@
 import BusStop from "./components/BusStop";
 import BusStopSearch from "./components/BusStopSearch";
 import Clock from "./components/Clock";
-import useBusStopStore from "@/app/store";
+import useBusStopStore from "@/app/stores/BusStopStore";
 
 export default function Home() {
   const stopIds = useBusStopStore((state) => state.stopIds);

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import useBusStopStore from "../store";
+import useBusStopStore from "../stores/BusStopStore";
+import useTimeStore from "../stores/TimeStore";
 import { CircleX } from "lucide-react";
 
 interface StopTime {
@@ -42,6 +43,8 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
 
   const deleteStop = useBusStopStore((state) => state.deleteStop);
 
+  const earlyBird = useTimeStore((state) => state.earlyBird);
+
   const handleDelete = (id: string) => {
     deleteStop(id);
   };
@@ -57,7 +60,16 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
       });
       const dataAikataulu = await responseAikataulu.json();
       if (dataAikataulu.data && dataAikataulu.data.stop) {
-        setStopTimes(dataAikataulu.data.stop.stoptimes);
+        const currentTime = new Date();
+        const currentTimeInSeconds =
+          currentTime.getHours() * 3600 + currentTime.getMinutes() * 60 + currentTime.getSeconds();
+        const adjustedTimeInSeconds = currentTimeInSeconds + (earlyBird ? 2 * 60 : 0);
+        const filteredStopTimes = dataAikataulu.data.stop.stoptimes.filter((stopTime: StopTime) => {
+          return stopTime.realtimeDeparture > adjustedTimeInSeconds;
+        });
+        const firstFiveStopTimes = filteredStopTimes.slice(0, 5);
+
+        setStopTimes(firstFiveStopTimes);
         setError(false);
       } else {
         throw new Error("Invalid data structure for aikataulu");
@@ -87,7 +99,7 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
       console.error("Error fetching data:", error);
       setError(true);
     }
-  }, [stopId]);
+  }, [stopId, earlyBird]);
 
   useEffect(() => {
     fetchData();
@@ -155,7 +167,10 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
                 <div className="w-max flex">
                   {(() => {
                     const currentTimeInSeconds =
-                      new Date().getHours() * 3600 + new Date().getMinutes() * 60 + new Date().getSeconds();
+                      new Date().getHours() * 3600 +
+                      new Date().getMinutes() * 60 +
+                      new Date().getSeconds() +
+                      (earlyBird ? 2 * 60 : 0);
                     const arrivalTimeInSeconds = stopTime.realtimeArrival;
                     const timeDifferenceInSeconds = arrivalTimeInSeconds - currentTimeInSeconds;
 

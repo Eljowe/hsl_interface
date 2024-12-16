@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, TramFront, BusFront, SquareMIcon } from "lucide-react"; // Import icons
-import useBusStopStore from "../store";
+import useBusStopStore from "../stores/BusStopStore";
 import KioskBoard from "kioskboard";
 
 interface Feature {
