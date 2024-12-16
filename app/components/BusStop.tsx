@@ -1,7 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import useBusStopStore from "../stores/BusStopStore";
 import useTimeStore from "../stores/TimeStore";
-import { CircleX } from "lucide-react";
+import {
+  CircleX,
+  TramFront,
+  BusFront,
+  TrainFront,
+  SquareMIcon,
+} from "lucide-react";
 
 interface StopTime {
   headsign: string;
@@ -18,6 +24,7 @@ interface StopTime {
       route: {
         shortName: string;
         type: number;
+        mode: string;
       };
     };
   };
@@ -30,6 +37,7 @@ interface StopInfo {
   zoneId: string;
   lat: number;
   lon: number;
+  vehicleMode: string;
 }
 
 interface BusStopProps {
@@ -93,6 +101,7 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
         body: JSON.stringify({ stopId }),
       });
       const dataPysakki = await responsePysakki.json();
+      console.log(dataPysakki);
       if (dataPysakki.data && dataPysakki.data.stop) {
         setStopInfo(dataPysakki.data.stop);
         setError(false);
@@ -135,11 +144,43 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     );
   }
 
+  const renderIcon = (mode: string) => {
+    switch (mode) {
+      case "TRAM":
+        return (
+          <div className="mr-2 rounded-md bg-green-700 p-2 text-white">
+            <TramFront size={24} />
+          </div>
+        );
+      case "BUS":
+        return (
+          <div className="mr-2 rounded-md bg-blue-600 p-2 text-white">
+            <BusFront size={24} />
+          </div>
+        );
+      case "SUBWAY":
+        return (
+          <div className="mr-2 rounded-md bg-orange-600 p-2 text-white">
+            <SquareMIcon size={24} />
+          </div>
+        );
+      case "RAIL":
+        return (
+          <div className="mr-2 rounded-md bg-purple-700 p-2 text-white">
+            <TrainFront size={24} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="w-[380px]">
       {stopInfo && (
         <div className="mb-4 flex flex-col items-start">
           <div className="flex gap-2">
+            {renderIcon(stopInfo.vehicleMode)}
             <h1 className="text-3xl font-semibold">{stopInfo.name}</h1>
             <button
               onClick={() => handleDelete(stopId)}
@@ -163,12 +204,17 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
                 <div className="w-14">
                   <h2
                     className={`rounded-md px-2 py-1 text-center text-white ${
-                      stopTime.trip.pattern.route.type === 702 ||
-                      stopTime.trip.pattern.route.type === 1
-                        ? "bg-orange-700"
-                        : stopTime.trip.pattern.route.type === 0
-                          ? "bg-green-700"
+                      stopTime.trip.pattern.route.mode === "BUS"
+                        ? stopTime.trip.pattern.route.type === 702
+                          ? "bg-orange-700"
                           : "bg-blue-600"
+                        : stopTime.trip.pattern.route.mode === "TRAM"
+                          ? "bg-green-700"
+                          : stopTime.trip.pattern.route.mode === "SUBWAY"
+                            ? "bg-orange-600"
+                            : stopTime.trip.pattern.route.mode === "RAIL"
+                              ? "bg-purple-800"
+                              : "bg-gray-500"
                     }`}
                   >
                     {stopTime.trip.pattern.route.shortName}

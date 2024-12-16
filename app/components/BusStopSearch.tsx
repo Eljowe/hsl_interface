@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, TramFront, BusFront, SquareMIcon } from "lucide-react"; // Import icons
+import {
+  Search,
+  TramFront,
+  BusFront,
+  SquareMIcon,
+  TrainFront,
+} from "lucide-react"; // Import icons
 import useBusStopStore from "../stores/BusStopStore";
 import KioskBoard from "kioskboard";
 
@@ -129,7 +135,6 @@ const BusStopSearch = () => {
         body: JSON.stringify({ searchWord }),
       });
       const data: ResponseData = await res.json();
-
       const filteredIDs = data.features.filter((feature: Feature) => {
         const transformedId = feature.properties.id.replace(
           /^GTFS:(HSL:\d+).*$/,
@@ -171,7 +176,7 @@ const BusStopSearch = () => {
     switch (mode) {
       case "TRAM":
         return (
-          <div className="mr-2 rounded-md bg-green-600 p-2 text-white">
+          <div className="mr-2 rounded-md bg-green-700 p-2 text-white">
             <TramFront size={24} />
           </div>
         );
@@ -185,6 +190,12 @@ const BusStopSearch = () => {
         return (
           <div className="mr-2 rounded-md bg-orange-600 p-2 text-white">
             <SquareMIcon size={24} />
+          </div>
+        );
+      case "RAIL":
+        return (
+          <div className="mr-2 rounded-md bg-purple-700 p-2 text-white">
+            <TrainFront size={24} />
           </div>
         );
       default:

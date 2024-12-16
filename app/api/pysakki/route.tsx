@@ -39,6 +39,7 @@ export async function POST(request: Request) {
           desc
           id
         }
+        vehicleMode
       }
 
       fragment StopPageHeaderContainer_stop on Stop {
