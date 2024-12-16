@@ -53,30 +53,34 @@ const renderIcon = (mode: string) => {
   switch (mode) {
     case "TRAM":
       return (
-        <div className="rounded-md bg-green-700 p-2 text-white">
+        <div className="h-min rounded-md bg-green-700 p-2 text-white">
           <TramFront size={24} />
         </div>
       );
     case "BUS":
       return (
-        <div className="rounded-md bg-blue-600 p-2 text-white">
+        <div className="h-min rounded-md bg-blue-600 p-2 text-white">
           <BusFront size={24} />
         </div>
       );
     case "SUBWAY":
       return (
-        <div className="rounded-md bg-orange-600 p-2 text-white">
+        <div className="h-min rounded-md bg-orange-600 p-2 text-white">
           <SquareMIcon size={24} />
         </div>
       );
     case "RAIL":
       return (
-        <div className="rounded-md bg-purple-700 p-2 text-white">
+        <div className="h-min rounded-md bg-purple-700 p-2 text-white">
           <TrainFront size={24} />
         </div>
       );
     default:
-      return null;
+      return (
+        <div className="h-min rounded-md bg-purple-700 p-2 text-white">
+          <TrainFront size={24} />
+        </div>
+      );
   }
 };
 
@@ -91,12 +95,17 @@ const getBackgroundColor = (mode: string, type: number) => {
     case "RAIL":
       return "bg-purple-800";
     default:
-      return "bg-gray-500";
+      return "bg-red-500";
   }
 };
 
-const fetchSchedule = async (stopId: string, earlyBird: boolean) => {
-  const response = await fetch("/api/aikataulu", {
+const fetchSchedule = async (
+  stopId: string,
+  earlyBird: boolean,
+  mode: string,
+) => {
+  const apiUrl = mode === "RAIL" ? "/api/juna_aikataulu" : "/api/aikataulu";
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,7 +113,7 @@ const fetchSchedule = async (stopId: string, earlyBird: boolean) => {
     body: JSON.stringify({ stopId }),
   });
   const data = await response.json();
-  if (data.data && data.data.stop) {
+  if (data.data) {
     const currentTime = new Date();
     const currentTimeInSeconds =
       currentTime.getHours() * 3600 +
@@ -112,10 +121,16 @@ const fetchSchedule = async (stopId: string, earlyBird: boolean) => {
       currentTime.getSeconds();
     const adjustedTimeInSeconds =
       currentTimeInSeconds + (earlyBird ? 2 * 60 : 0);
-    const filteredStopTimes = data.data.stop.stoptimes.filter(
-      (stopTime: StopTime) =>
-        stopTime.realtimeDeparture > adjustedTimeInSeconds,
-    );
+    const filteredStopTimes =
+      mode === "RAIL"
+        ? data.data.station.stoptimes.filter(
+            (stopTime: StopTime) =>
+              stopTime.realtimeDeparture > adjustedTimeInSeconds,
+          )
+        : data.data.stop.stoptimes.filter(
+            (stopTime: StopTime) =>
+              stopTime.realtimeDeparture > adjustedTimeInSeconds,
+          );
     return filteredStopTimes.slice(0, 5);
   } else {
     throw new Error(`Invalid data structure for aikataulu ${stopId}`);
@@ -123,7 +138,8 @@ const fetchSchedule = async (stopId: string, earlyBird: boolean) => {
 };
 
 const fetchBusFetchStopInfo = async (stopId: string, mode: string) => {
-  const response = await fetch("/api/pysakki", {
+  const apiUrl = mode === "RAIL" ? "/api/juna_pysakki" : "/api/pysakki";
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -131,7 +147,10 @@ const fetchBusFetchStopInfo = async (stopId: string, mode: string) => {
     body: JSON.stringify({ stopId }),
   });
   const data = await response.json();
-  if (data.data && data.data.stop) {
+  if (data.data) {
+    if (mode === "RAIL") {
+      return data.data.station;
+    }
     return data.data.stop;
   } else {
     throw new Error(`Invalid data structure for pysakki ${stopId}`);
@@ -226,10 +245,11 @@ const BusStop: React.FC<BusStopInfo> = ({ StopInfo }) => {
     try {
       const [FetchStopInfo, stopTimes] = await Promise.all([
         fetchBusFetchStopInfo(StopInfo.stopId, StopInfo.vehicleMode),
-        fetchSchedule(StopInfo.stopId, earlyBird),
+        fetchSchedule(StopInfo.stopId, earlyBird, StopInfo.vehicleMode),
       ]);
       setStopTimes(stopTimes);
       setFetchStopInfo(FetchStopInfo);
+
       setError(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -246,7 +266,9 @@ const BusStop: React.FC<BusStopInfo> = ({ StopInfo }) => {
   if (error) {
     return (
       <div className="w-[380px] p-2">
-        <h1 className="text-3xl font-semibold">Virhe</h1>
+        <h1 className="w-min text-3xl font-semibold">Virhe</h1>
+        <h1 className="w-max text-2xl font-semibold">{StopInfo.stopId}</h1>
+        <div className="w-min">{renderIcon(StopInfo.vehicleMode)}</div>
         <p className="text-sm">
           Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.
         </p>

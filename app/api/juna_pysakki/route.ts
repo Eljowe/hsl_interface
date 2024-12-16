@@ -1,4 +1,5 @@
-const API_URL = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1";
+const API_URL =
+  "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql";
 const API_KEY = process.env.API_KEY;
 
 export async function POST(request: Request) {
@@ -7,31 +8,45 @@ export async function POST(request: Request) {
       status: 500,
     });
   }
+  const { stopId } = await request.json();
 
-  const { terminalId } = await request.json();
   const payload = {
-    id: "stopRoutes_TerminalPageMapContainer_Query",
+    id: "stopRoutes_TerminalPageHeaderContainer_Query",
     query: `
-      query stopRoutes_TerminalPageMapContainer_Query($terminalId: String!) {
+      query stopRoutes_TerminalPageHeaderContainer_Query($terminalId: String!) {
         station(id: $terminalId) {
-          ...TerminalPageMapContainer_station
+          ...TerminalPageHeaderContainer_station
           id
         }
       }
 
-      fragment TerminalPageMapContainer_station on Stop {
-        lat
-        lon
-        platformCode
+      fragment StopCardHeaderContainer_stop on Stop {
+        gtfsId
         name
         code
         desc
-        vehicleMode
-        locationType
+        zoneId
+        alerts {
+          alertSeverityLevel
+          effectiveEndDate
+          effectiveStartDate
+          id
+        }
+        lat
+        lon
+        stops {
+          name
+          desc
+          id
+        }
+      }
+
+      fragment TerminalPageHeaderContainer_station on Stop {
+        ...StopCardHeaderContainer_stop
       }
     `,
     variables: {
-      terminalId,
+      terminalId: stopId,
     },
   };
 

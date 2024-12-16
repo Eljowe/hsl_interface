@@ -170,6 +170,7 @@ const BusStopSearch = () => {
         },
         body: JSON.stringify({ searchWord }),
       });
+
       const data: ResponseData = await res.json();
       const filteredIDs = data.features.filter((feature: Feature) => {
         const transformedId = feature.properties.id.replace(
