@@ -9,7 +9,6 @@ export async function POST(request: Request) {
   }
 
   const { stopId } = await request.json();
-
   const payload = {
     id: "stopRoutes_StopPageHeaderContainer_Query",
     query: `
@@ -67,6 +66,5 @@ export async function POST(request: Request) {
       status: response.status,
     });
   }
-
   return new Response(JSON.stringify(data), { status: 200 });
 }

@@ -9,6 +9,11 @@ import {
 import useBusStopStore from "../stores/BusStopStore";
 import KioskBoard from "kioskboard";
 
+interface StopInfo {
+  stopId: string;
+  vehicleMode: string;
+}
+
 interface Feature {
   type: string;
   properties: {
@@ -32,6 +37,37 @@ interface ResponseData {
   features: Feature[];
 }
 
+const renderIcon = (mode: string) => {
+  switch (mode) {
+    case "TRAM":
+      return (
+        <div className="mr-2 rounded-md bg-green-700 p-2 text-white">
+          <TramFront size={24} />
+        </div>
+      );
+    case "BUS":
+      return (
+        <div className="mr-2 rounded-md bg-blue-600 p-2 text-white">
+          <BusFront size={24} />
+        </div>
+      );
+    case "SUBWAY":
+      return (
+        <div className="mr-2 rounded-md bg-orange-600 p-2 text-white">
+          <SquareMIcon size={24} />
+        </div>
+      );
+    case "RAIL":
+      return (
+        <div className="mr-2 rounded-md bg-purple-700 p-2 text-white">
+          <TrainFront size={24} />
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
 const BusStopSearch = () => {
   const [searchWord, setSearchWord] = useState<string>("");
   const [response, setResponse] = useState<ResponseData | null>(null);
@@ -41,9 +77,9 @@ const BusStopSearch = () => {
 
   const addStop = useBusStopStore((state) => state.addStop);
 
-  const handleResultClick = (id: string) => {
+  const handleResultClick = (id: string, mode: string) => {
     const transformedId = id.replace(/^GTFS:(HSL:\d+).*$/, "$1");
-    addStop(transformedId);
+    addStop(transformedId, mode);
     setResponse(null);
     setSearchWord("");
     if (inputRef.current) {
@@ -140,7 +176,7 @@ const BusStopSearch = () => {
           /^GTFS:(HSL:\d+).*$/,
           "$1",
         );
-        return !stopIds.includes(transformedId);
+        return !stopIds.some((stop: StopInfo) => stop.stopId === transformedId);
       });
       setResponse({ ...data, features: filteredIDs });
     } catch (error) {
@@ -171,37 +207,6 @@ const BusStopSearch = () => {
 
     return () => clearTimeout(debounceTimeout);
   }, [searchWord, handleSearch]);
-
-  const renderIcon = (mode: string) => {
-    switch (mode) {
-      case "TRAM":
-        return (
-          <div className="mr-2 rounded-md bg-green-700 p-2 text-white">
-            <TramFront size={24} />
-          </div>
-        );
-      case "BUS":
-        return (
-          <div className="mr-2 rounded-md bg-blue-600 p-2 text-white">
-            <BusFront size={24} />
-          </div>
-        );
-      case "SUBWAY":
-        return (
-          <div className="mr-2 rounded-md bg-orange-600 p-2 text-white">
-            <SquareMIcon size={24} />
-          </div>
-        );
-      case "RAIL":
-        return (
-          <div className="mr-2 rounded-md bg-purple-700 p-2 text-white">
-            <TrainFront size={24} />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className="relative w-full">
@@ -237,7 +242,12 @@ const BusStopSearch = () => {
               <div
                 key={feature.properties.id}
                 className="flex cursor-pointer items-center p-2 hover:bg-gray-100"
-                onClick={() => handleResultClick(feature.properties.id)}
+                onClick={() =>
+                  handleResultClick(
+                    feature.properties.id,
+                    feature.properties.addendum.GTFS.modes[0],
+                  )
+                }
               >
                 {renderIcon(feature.properties.addendum.GTFS.modes[0])}
                 <div>

@@ -15,8 +15,8 @@ export default function Home() {
           <Clock />
         </div>
         <div className="mx-auto flex flex-wrap items-start justify-start gap-6">
-          {stopIds.map((stopId) => (
-            <BusStop key={stopId} stopId={stopId} />
+          {stopIds.map((stop) => (
+            <BusStop key={stop.stopId} StopInfo={stop} />
           ))}
         </div>
       </main>
