@@ -3,7 +3,9 @@ const API_URL = "https://api.digitransit.fi/geocoding/v1/search";
 
 export async function POST(request: Request) {
   if (!API_KEY) {
-    return new Response(JSON.stringify({ error: "API_KEY is not set" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "API_KEY is not set" }), {
+      status: 500,
+    });
   }
 
   const { searchWord } = await request.json();
@@ -36,8 +38,12 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+      });
     }
-    return new Response(JSON.stringify({ error: "Unknown error" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Unknown error" }), {
+      status: 500,
+    });
   }
 }

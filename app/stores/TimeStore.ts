@@ -6,18 +6,22 @@ interface TimeStore {
   toggleEarlyBird: () => void;
 }
 
-type MyPersist = (config: StateCreator<TimeStore>, options: PersistOptions<TimeStore>) => StateCreator<TimeStore>;
+type MyPersist = (
+  config: StateCreator<TimeStore>,
+  options: PersistOptions<TimeStore>,
+) => StateCreator<TimeStore>;
 
 const useTimeStore = create<TimeStore>(
   (persist as MyPersist)(
     (set) => ({
       earlyBird: false,
-      toggleEarlyBird: () => set((state: TimeStore) => ({ earlyBird: !state.earlyBird })),
+      toggleEarlyBird: () =>
+        set((state: TimeStore) => ({ earlyBird: !state.earlyBird })),
     }),
     {
       name: "time-store",
-    }
-  )
+    },
+  ),
 );
 
 export default useTimeStore;

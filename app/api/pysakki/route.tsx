@@ -3,7 +3,9 @@ const API_KEY = process.env.API_KEY;
 
 export async function POST(request: Request) {
   if (!API_KEY) {
-    return new Response(JSON.stringify({ error: "API_KEY is not set" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "API_KEY is not set" }), {
+      status: 500,
+    });
   }
 
   const { stopId } = await request.json();
@@ -60,7 +62,9 @@ export async function POST(request: Request) {
   const data = await response.json();
 
   if (!response.ok) {
-    return new Response(JSON.stringify({ error: data.errors }), { status: response.status });
+    return new Response(JSON.stringify({ error: data.errors }), {
+      status: response.status,
+    });
   }
 
   return new Response(JSON.stringify(data), { status: 200 });

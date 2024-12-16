@@ -9,8 +9,14 @@ const Clock: React.FC = () => {
     toggleEarlyBird: () => void;
   }
 
-  const selectEarlyBird = useCallback((state: TimeStoreState) => state.earlyBird, []);
-  const selectToggleEarlyBird = useCallback((state: TimeStoreState) => state.toggleEarlyBird, []);
+  const selectEarlyBird = useCallback(
+    (state: TimeStoreState) => state.earlyBird,
+    [],
+  );
+  const selectToggleEarlyBird = useCallback(
+    (state: TimeStoreState) => state.toggleEarlyBird,
+    [],
+  );
 
   const earlyBird = useTimeStore(selectEarlyBird);
   const toggleEarlyBird = useTimeStore(selectToggleEarlyBird);
@@ -25,12 +31,18 @@ const Clock: React.FC = () => {
     };
   }, []);
 
-  const displayTime = new Date(currentTime.getTime() + (earlyBird ? 2 * 60 * 1000 : 0));
+  const displayTime = new Date(
+    currentTime.getTime() + (earlyBird ? 2 * 60 * 1000 : 0),
+  );
 
   return (
     <div onClick={toggleEarlyBird} className="cursor-pointer">
-      <p className="text-[3em] font-bold w-full rounded-md">
-        {displayTime.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}
+      <p className="w-full rounded-md text-[3em] font-bold">
+        {displayTime.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })}
       </p>
     </div>
   );

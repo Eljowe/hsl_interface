@@ -62,11 +62,16 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
       if (dataAikataulu.data && dataAikataulu.data.stop) {
         const currentTime = new Date();
         const currentTimeInSeconds =
-          currentTime.getHours() * 3600 + currentTime.getMinutes() * 60 + currentTime.getSeconds();
-        const adjustedTimeInSeconds = currentTimeInSeconds + (earlyBird ? 2 * 60 : 0);
-        const filteredStopTimes = dataAikataulu.data.stop.stoptimes.filter((stopTime: StopTime) => {
-          return stopTime.realtimeDeparture > adjustedTimeInSeconds;
-        });
+          currentTime.getHours() * 3600 +
+          currentTime.getMinutes() * 60 +
+          currentTime.getSeconds();
+        const adjustedTimeInSeconds =
+          currentTimeInSeconds + (earlyBird ? 2 * 60 : 0);
+        const filteredStopTimes = dataAikataulu.data.stop.stoptimes.filter(
+          (stopTime: StopTime) => {
+            return stopTime.realtimeDeparture > adjustedTimeInSeconds;
+          },
+        );
         const firstFiveStopTimes = filteredStopTimes.slice(0, 5);
 
         setStopTimes(firstFiveStopTimes);
@@ -117,8 +122,13 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
     return (
       <div className="w-[380px] p-2">
         <h1 className="text-3xl font-semibold">Virhe</h1>
-        <p className="text-sm">Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.</p>
-        <button className="mt-2 px-4 py-2 bg-red-500 text-white rounded" onClick={() => handleDelete(stopId)}>
+        <p className="text-sm">
+          Tietoja ei voitu hakea. Yritä myöhemmin uudelleen.
+        </p>
+        <button
+          className="mt-2 rounded bg-red-500 px-4 py-2 text-white"
+          onClick={() => handleDelete(stopId)}
+        >
           Poista asema
         </button>
       </div>
@@ -128,30 +138,37 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
   return (
     <div className="w-[380px]">
       {stopInfo && (
-        <div className="flex flex-col items-start mb-4">
+        <div className="mb-4 flex flex-col items-start">
           <div className="flex gap-2">
             <h1 className="text-3xl font-semibold">{stopInfo.name}</h1>
-            <button onClick={() => handleDelete(stopId)} className="text-neutral-500">
+            <button
+              onClick={() => handleDelete(stopId)}
+              className="text-neutral-500"
+            >
               <CircleX />
             </button>
           </div>
           <p className="text-sm">{stopInfo.desc}</p>
-          <p className="text-sm border px-1 text-gray-500">{stopInfo.code}</p>
+          <p className="border px-1 text-sm text-gray-500">{stopInfo.code}</p>
         </div>
       )}
       {stopTimes.length > 0 && (
         <div className="divide-y-2">
           {stopTimes.map((stopTime, index) => (
-            <div key={index} className="flex py-2 flex-row items-start justify-between bg-white">
-              <div className="text-sm font-semibold flex items-center">
+            <div
+              key={index}
+              className="flex flex-row items-start justify-between bg-white py-2"
+            >
+              <div className="flex items-center text-sm font-semibold">
                 <div className="w-14">
                   <h2
-                    className={`text-center px-2 py-1 text-white rounded-md ${
-                      stopTime.trip.pattern.route.type === 702 || stopTime.trip.pattern.route.type === 1
+                    className={`rounded-md px-2 py-1 text-center text-white ${
+                      stopTime.trip.pattern.route.type === 702 ||
+                      stopTime.trip.pattern.route.type === 1
                         ? "bg-orange-700"
                         : stopTime.trip.pattern.route.type === 0
-                        ? "bg-green-700"
-                        : "bg-blue-600"
+                          ? "bg-green-700"
+                          : "bg-blue-600"
                     }`}
                   >
                     {stopTime.trip.pattern.route.shortName}
@@ -161,10 +178,12 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
               </div>
               <div
                 className={`flex flex-row gap-2 ${
-                  stopTime.realtimeState === "UPDATED" ? "text-green-600" : "text-black"
+                  stopTime.realtimeState === "UPDATED"
+                    ? "text-green-600"
+                    : "text-black"
                 }`}
               >
-                <div className="w-max flex">
+                <div className="flex w-max">
                   {(() => {
                     const currentTimeInSeconds =
                       new Date().getHours() * 3600 +
@@ -172,7 +191,8 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
                       new Date().getSeconds() +
                       (earlyBird ? 2 * 60 : 0);
                     const arrivalTimeInSeconds = stopTime.realtimeArrival;
-                    const timeDifferenceInSeconds = arrivalTimeInSeconds - currentTimeInSeconds;
+                    const timeDifferenceInSeconds =
+                      arrivalTimeInSeconds - currentTimeInSeconds;
 
                     if (timeDifferenceInSeconds < 30) {
                       return "nyt";
@@ -183,7 +203,9 @@ const BusStop: React.FC<BusStopProps> = ({ stopId }) => {
                     }
                   })()}
                 </div>
-                <div className="w-[46px]">{formatTime(stopTime.realtimeArrival)}</div>
+                <div className="w-[46px]">
+                  {formatTime(stopTime.realtimeArrival)}
+                </div>
               </div>
             </div>
           ))}
